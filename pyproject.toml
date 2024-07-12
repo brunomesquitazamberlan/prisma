@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "prisma"
+version = "0.1.0"
+description = ""
+authors = ["Bruno Mesquita Zamberlan <brunomesquitazamberlan@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+boto3 = "^1.34.143"
+streamlit = "^1.36.0"
+
+[tool.poetry.group.dev.dependencies]
+streamlit = "^1.36.0"
+openai = "^1.35.13"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
