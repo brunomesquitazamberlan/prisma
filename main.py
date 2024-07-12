@@ -37,7 +37,7 @@ def send_message(assist_id: str, question: str):
 
 def send_message_inside_context(assist_id: str, question: str):
     
-    thread_id = retrive_last_register("livia_database")["Item"]["thread_id"]
+    thread_id = retrive_last_register("prisma_database")["Item"]["thread_id"]
 
     def retrive_run_return_message(run_id: str, thread_id: str):
       if client.beta.threads.runs.retrieve(thread_id=thread_id, run_id=run_id).status == "completed":
@@ -135,7 +135,7 @@ def update_feedback_txt(table_name: str, id_transacao: str, feedback_txt: str):
 
 
 
-last_register = retrive_last_register("livia_database")["Item"]["questions_answers_list"]
+last_register = retrive_last_register("prisma_database")["Item"]["questions_answers_list"]
 
 time_since_last_register = return_time_since_last_transaction(last_register).seconds
 
@@ -189,7 +189,7 @@ def main_page():
                     "data": f"{get_current_time_GMT().month}/{get_current_time_GMT().day}/{get_current_time_GMT().year} {get_current_time_GMT().hour}:{get_current_time_GMT().minute}:{get_current_time_GMT().second}",
                     "pergunta": user_input,
                     "resposta": openai_return["answer"]}]}
-            create_register("livia_database", register)
+            create_register("prisma_database", register)
             ########################################################
 
 
@@ -207,15 +207,15 @@ def feedback_page():
     if col1.button("👍 Sim"):
         st.session_state['is_useful'] = 'Useful'
         st.session_state['page'] = 'thank_you'
-        update_is_useful_feedback("livia_database",
-                                  retrive_last_register("livia_database")["Item"]["id_transacao"],
+        update_is_useful_feedback("prisma_database",
+                                  retrive_last_register("prisma_database")["Item"]["id_transacao"],
                                   True)
         st.rerun()
 
     if col2.button("👎 Não"):
         st.session_state['is_useful'] = 'Not Useful'
-        update_is_useful_feedback("livia_database",
-                                  retrive_last_register("livia_database")["Item"]["id_transacao"],
+        update_is_useful_feedback("prisma_database",
+                                  retrive_last_register("prisma_database")["Item"]["id_transacao"],
                                   False)
         st.rerun()
 
@@ -223,11 +223,11 @@ def feedback_page():
         additional_feedback = st.text_area("Por favor, nos diga como podemos melhorar:")
         if st.button("Enviar Feedback"):
             st.session_state['additional_feedback'] = additional_feedback
-            update_is_useful_feedback("livia_database",
-                                  retrive_last_register("livia_database")["Item"]["id_transacao"],
+            update_is_useful_feedback("prisma_database",
+                                  retrive_last_register("prisma_database")["Item"]["id_transacao"],
                                   False)
-            update_feedback_txt("livia_database",
-                                retrive_last_register("livia_database")["Item"]["id_transacao"],
+            update_feedback_txt("prisma_database",
+                                retrive_last_register("prisma_database")["Item"]["id_transacao"],
                                   additional_feedback)
             st.session_state['page'] = 'thank_you'
             st.rerun()
