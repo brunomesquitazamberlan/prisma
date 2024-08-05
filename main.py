@@ -9,7 +9,8 @@ import string
 
 #############################################################################
 client = OpenAI(organization=st.secrets["organization"],
-                api_key=st.secrets["api_key"])
+                api_key=st.secrets["api_key"],
+                project="Prisma")
 
 #############################################################################
 
