@@ -25,7 +25,7 @@ def send_message(assist_id: str, question: str):
   
   
   run = client.beta.threads.create_and_run(
-    assistant_id=assist_id,
+    assistant_id=st.secrets["assist_id"],
     thread={
     "messages": [
       {"role": "user", "content": question}
@@ -52,7 +52,7 @@ def send_message_inside_context(assist_id: str, question: str):
                                         content=question)
     
     run = client.beta.threads.runs.create(
-      assistant_id=assist_id,
+      assistant_id=st.secrets["assist_id"],
       thread_id=thread_id)
 
     return {"answer": retrive_run_return_message(run.id, run.thread_id),
