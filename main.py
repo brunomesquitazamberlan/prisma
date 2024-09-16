@@ -67,18 +67,18 @@ def create_register(collection_name: str, item: dict):
 
     return doc_ref[1].id
     
-def update_register(collection_name: str, item_id: str, info_to_update: dict):
+def update_register(collection_name: str, doc_id: str, info_to_update: dict):
 
     try:
-        doc_ref = db.collection(colecao).document(doc_id)
+        # Referência ao documento
+        doc_ref = db.collection(collection_name).document(doc_id)
 
-        doc_ref.update(dados_atualizados)
-
+        # Atualiza o documento com os dados fornecidos
+        doc_ref.update(info_to_update)
+        
         return True
-    
     except:
         return False
-        
 
 def generate_transaction_id(n: int):
   letters = string.ascii_letters + string.digits
