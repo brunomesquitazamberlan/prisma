@@ -161,25 +161,24 @@ def main_page():
 def feedback_page():
     st.write("Você digitou:", st.session_state['user_input'])
     st.write("Resultado:", st.session_state['result'])
-    st.write(st.session_state['document_id'])
     st.write("### O resultado foi útil?")
     col1, col2 = st.columns(2)
 
     if col1.button("👍 Sim"):
-        st.session_state['is_useful'] = 'Useful'
+        st.session_state['is_useful'] = True
         st.session_state['page'] = 'thank_you'
         
         #update_is_useful_feedback(collection_name: str, id_transacao: str, is_useful: bool)
         
-        update_is_useful_feedback("prisma", document_id, True)
+        update_is_useful_feedback("prisma", st.session_state['document_id'], st.session_state['is_useful'])
         st.rerun()
 
     if col2.button("👎 Não"):
-        st.session_state['is_useful'] = 'Not Useful'
-        update_is_useful_feedback("prisma", document_id, False)
+        st.session_state['is_useful'] = False
+        update_is_useful_feedback("prisma", st.session_state['document_id'], st.session_state['is_useful'])
         st.rerun()
 
-    if st.session_state['is_useful'] == 'Not Useful':
+    if st.session_state['is_useful'] == False:
         additional_feedback = st.text_area("Por favor, nos diga como podemos melhorar:")
         if st.button("Enviar Feedback"):
             st.session_state['additional_feedback'] = additional_feedback
@@ -187,16 +186,16 @@ def feedback_page():
             #                      retrive_last_register("prisma_database")["Item"]["id_transacao"],
             #                      False)
             update_feedback_txt("prisma",
-                                document_id,
-                                  additional_feedback)
+                                st.session_state['document_id'],
+                                  st.session_state['additional_feedback'])
             st.session_state['page'] = 'thank_you'
             st.rerun()
 
 # Função para exibir a página de agradecimento
 def thank_you_page():
-    if st.session_state['is_useful'] == 'Useful':
+    if st.session_state['is_useful'] == True:
         st.write("Obrigado pelo feedback! 👍")
-    elif st.session_state['is_useful'] == 'Not Useful':
+    elif st.session_state['is_useful'] == False:
         st.write("Obrigado pelo feedback! 👎")
         st.write("Seu feedback adicional:", st.session_state['additional_feedback'])
 
