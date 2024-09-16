@@ -85,33 +85,19 @@ def generate_transaction_id(n: int):
 
 def update_is_useful_feedback(collection_name: str, id_transacao: str, is_useful: bool):
          
-        name = table_name
+        info_to_update = {"is_useful": is_useful}
 
-        table = dynamodb.Table(name)
+        #collection_name: str, item_id: str, info_to_update: dict 
+        return update_register(collection_name, id_transacao, info_to_update)
+        
+
+def update_feedback_txt(collection_name: str, id_transacao: str, feedback: str):
          
-        table.update_item(Key={"id_transacao": id_transacao},
-                UpdateExpression="set #is_useful_feedback=:d",
-                ExpressionAttributeNames={"#is_useful_feedback": "is_useful"},
-                ExpressionAttributeValues={":d": is_useful},
-                ReturnValues="UPDATED_NEW")
+        info_to_update = {"feedback": feedback}
 
-def update_feedback_txt(table_name: str, id_transacao: str, feedback_txt: str):
-         
-        dynamodb = boto3.resource('dynamodb', region_name='us-east-1',
-                                  aws_access_key_id=st.secrets["aws_access_key_id"], aws_secret_access_key=st.secrets["aws_secret_access_key"])  
+        #collection_name: str, item_id: str, info_to_update: dict 
+        return update_register(collection_name, id_transacao, info_to_update)
 
-        name = table_name
-
-        table = dynamodb.Table(name)
-         
-        table.update_item(Key={"id_transacao": id_transacao},
-                UpdateExpression="set #feedback_comment=:d",
-                ExpressionAttributeNames={"#feedback_comment": "feedback_txt"},
-                ExpressionAttributeValues={":d": feedback_txt},
-                ReturnValues="UPDATED_NEW")
-
-
-# Função que inverte a string fornecida pelo usuário
 def call_openai_assistant(user_input):
     
     return_object = send_message(st.secrets["assist_id"], user_input)
@@ -178,27 +164,26 @@ def feedback_page():
     if col1.button("👍 Sim"):
         st.session_state['is_useful'] = 'Useful'
         st.session_state['page'] = 'thank_you'
-        update_is_useful_feedback("prisma_database",
-                                  retrive_last_register("prisma_database")["Item"]["id_transacao"],
-                                  True)
+        
+        #update_is_useful_feedback(collection_name: str, id_transacao: str, is_useful: bool)
+        
+        ubpdate_is_useful_feedback("prisma", document_id, True)
         st.rerun()
 
     if col2.button("👎 Não"):
         st.session_state['is_useful'] = 'Not Useful'
-        update_is_useful_feedback("prisma_database",
-                                  retrive_last_register("prisma_database")["Item"]["id_transacao"],
-                                  False)
+        ubpdate_is_useful_feedback("prisma", document_id, False)
         st.rerun()
 
     if st.session_state['is_useful'] == 'Not Useful':
         additional_feedback = st.text_area("Por favor, nos diga como podemos melhorar:")
         if st.button("Enviar Feedback"):
             st.session_state['additional_feedback'] = additional_feedback
-            update_is_useful_feedback("prisma_database",
-                                  retrive_last_register("prisma_database")["Item"]["id_transacao"],
-                                  False)
-            update_feedback_txt("prisma_database",
-                                retrive_last_register("prisma_database")["Item"]["id_transacao"],
+            #update_is_useful_feedback("prisma_database",
+            #                      retrive_last_register("prisma_database")["Item"]["id_transacao"],
+            #                      False)
+            update_feedback_txt("prisma",
+                                document_id,
                                   additional_feedback)
             st.session_state['page'] = 'thank_you'
             st.rerun()
