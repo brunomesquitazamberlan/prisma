@@ -160,6 +160,7 @@ def main_page():
 def feedback_page():
     st.write("Você digitou:", st.session_state['user_input'])
     st.write("Resultado:", st.session_state['result'])
+    st.write(document_id)
     st.write("### O resultado foi útil?")
     col1, col2 = st.columns(2)
 
