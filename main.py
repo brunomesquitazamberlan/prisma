@@ -3,9 +3,21 @@ import time
 from openai import OpenAI
 import time
 from datetime import datetime, timezone
-import boto3
 import random
 import string
+import firebase_admin
+from firebase_admin import credentials, firestore
+
+
+#######################################################################
+# Verifique se já existe um app inicializado
+if not firebase_admin._apps:
+    cred = credentials.Certificate('rag_base_conhecimento.json')
+    firebase_admin.initialize_app(cred)
+
+# Conectar ao Firestore
+db = firestore.client()
+########################################################################
 
 #############################################################################
 client = OpenAI(organization=st.secrets["organization"],
@@ -35,54 +47,6 @@ def send_message(assist_id: str, question: str):
   return {"answer": retrive_run_return_message(run.id, run.thread_id),
           "thread_id": run.thread_id}
 
-def send_message_inside_context(assist_id: str, question: str):
-    
-    thread_id = retrive_last_register("prisma_database")["Item"]["thread_id"]
-
-    def retrive_run_return_message(run_id: str, thread_id: str):
-      if client.beta.threads.runs.retrieve(thread_id=thread_id, run_id=run_id).status == "completed":
-        return client.beta.threads.messages.list(thread_id).data[0].content[0].text.value
-      else:
-        time.sleep(0.000001)
-        return retrive_run_return_message(run_id, thread_id)
-
-    message = client.beta.threads.messages.create(thread_id=thread_id,
-                                        role="user",
-                                        content=question)
-    
-    run = client.beta.threads.runs.create(
-      assistant_id=st.secrets["assist_id"],
-      thread_id=thread_id)
-
-    return {"answer": retrive_run_return_message(run.id, run.thread_id),
-          "thread_id": run.thread_id}
-
-
-
-def retrive_last_register(table_name: str):
-        dynamodb = boto3.resource('dynamodb', region_name='us-east-1',
-                                  aws_access_key_id=st.secrets["aws_access_key_id"], aws_secret_access_key=st.secrets["aws_secret_access_key"])  
-        name = table_name
-        table = dynamodb.Table(name)
-        response = table.scan()
-
-        dict_transactions = {datetime.strptime(qa_entry['data'], "%m/%d/%Y %H:%M:%S") : [dados['id_transacao'] for dados in response["Items"] if any(qa['data'] == qa_entry['data'] for qa in dados['questions_answers_list'])][0]
-                    for dados in response["Items"]
-                    for qa_entry in dados['questions_answers_list']}  
-
-        last_transaction = dict_transactions[max([date for date in dict_transactions.keys()])]
-
-        last_transaction_complete = table.get_item(TableName=table_name,Key={"id_transacao": last_transaction})
-
-        return last_transaction_complete
-
-def return_time_since_last_transaction(last_transaction):
-         last_transaction_time = max([datetime.strptime(item["data"], "%m/%d/%Y %H:%M:%S") for item in last_transaction])
-         date_now = get_current_time_GMT().replace(tzinfo=None, microsecond=0)
-
-         timedelta = date_now-last_transaction_time
-
-         return timedelta 
 
 def get_current_time_GMT():
     current_time_utc = datetime.now(timezone.utc)
@@ -91,23 +55,36 @@ def get_current_time_GMT():
     
     return current_time_gmt
 
-def create_register(table_name: str, item: dict):
-    dynamodb = boto3.resource('dynamodb', region_name='us-east-1',
-                              aws_access_key_id=st.secrets["aws_access_key_id"], aws_secret_access_key=st.secrets["aws_secret_access_key"])  
-    name = table_name
-    table = dynamodb.Table(name)
-    table.put_item(Item=item)
+def create_register(collection_name: str, item: dict):
+    
+    # Referência à coleção existente
+    collection_ref = db.collection(collection_name)
+
+    # Adicionar um documento com um ID gerado automaticamente
+    doc_ref = collection_ref.add(item)
+
+    return doc_ref[1].id
+    
+def update_register(collection_name: str, item_id: str, info_to_update: dict):
+
+    try:
+        doc_ref = db.collection(colecao).document(doc_id)
+
+        doc_ref.update(dados_atualizados)
+
+        return True
+    
+    except:
+        return False
+        
 
 def generate_transaction_id(n: int):
   letters = string.ascii_letters + string.digits
   code = ''.join(random.choice(letters) for _ in range(n))
   return code
 
-def update_is_useful_feedback(table_name: str, id_transacao: str, is_useful: bool):
+def update_is_useful_feedback(collection_name: str, id_transacao: str, is_useful: bool):
          
-        dynamodb = boto3.resource('dynamodb', region_name='us-east-1',
-                                  aws_access_key_id=st.secrets["aws_access_key_id"], aws_secret_access_key=st.secrets["aws_secret_access_key"])  
-
         name = table_name
 
         table = dynamodb.Table(name)
@@ -132,13 +109,6 @@ def update_feedback_txt(table_name: str, id_transacao: str, feedback_txt: str):
                 ExpressionAttributeNames={"#feedback_comment": "feedback_txt"},
                 ExpressionAttributeValues={":d": feedback_txt},
                 ReturnValues="UPDATED_NEW")
-
-
-
-last_register = retrive_last_register("prisma_database")["Item"]["questions_answers_list"]
-
-time_since_last_register = return_time_since_last_transaction(last_register).seconds
-
 
 
 # Função que inverte a string fornecida pelo usuário
@@ -189,7 +159,8 @@ def main_page():
                     "data": f"{get_current_time_GMT().month}/{get_current_time_GMT().day}/{get_current_time_GMT().year} {get_current_time_GMT().hour}:{get_current_time_GMT().minute}:{get_current_time_GMT().second}",
                     "pergunta": user_input,
                     "resposta": openai_return["answer"]}]}
-            create_register("prisma_database", register)
+            
+            document_id = create_register("prisma", register)
             ########################################################
 
 
