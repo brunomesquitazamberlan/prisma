@@ -8,8 +8,7 @@ import string
 import json
 import firebase_admin
 from firebase_admin import credentials, firestore
-
-firebase_credentials = st.secrets["firebase"]
+firebase_credentials = st.secrets["firebase"]['my_project_settings']
 
 
 #######################################################################
