@@ -169,12 +169,12 @@ def feedback_page():
         
         #update_is_useful_feedback(collection_name: str, id_transacao: str, is_useful: bool)
         
-        ubpdate_is_useful_feedback("prisma", document_id, True)
+        update_is_useful_feedback("prisma", document_id, True)
         st.rerun()
 
     if col2.button("👎 Não"):
         st.session_state['is_useful'] = 'Not Useful'
-        ubpdate_is_useful_feedback("prisma", document_id, False)
+        update_is_useful_feedback("prisma", document_id, False)
         st.rerun()
 
     if st.session_state['is_useful'] == 'Not Useful':
