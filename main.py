@@ -149,6 +149,7 @@ def main_page():
                     "resposta": openai_return["answer"]}]}
             
             document_id = create_register("prisma", register)
+            st.session_state['document_id'] = document_id
             ########################################################
 
 
@@ -160,7 +161,7 @@ def main_page():
 def feedback_page():
     st.write("Você digitou:", st.session_state['user_input'])
     st.write("Resultado:", st.session_state['result'])
-    st.write(document_id)
+    st.write(st.session_state['document_id'])
     st.write("### O resultado foi útil?")
     col1, col2 = st.columns(2)
 
