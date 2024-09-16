@@ -8,11 +8,13 @@ import string
 import firebase_admin
 from firebase_admin import credentials, firestore
 
+firebase_credentials = st.secrets["FIREBASE_CREDENTIALS"]
+
 
 #######################################################################
 # Verifique se já existe um app inicializado
 if not firebase_admin._apps:
-    cred = credentials.Certificate('rag_base_conhecimento.json')
+    cred = credentials.Certificate(firebase_credentials)
     firebase_admin.initialize_app(cred)
 
 # Conectar ao Firestore
